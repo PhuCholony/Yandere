@@ -1,0 +1,61 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  itch:
+    name: Publish to itch.io
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        include:
+          - channel: win64
+            asset_pattern: "*win-x86_64*"
+          - channel: linux64
+            asset_pattern: "*linux-x86_64*"
+          - channel: macos
+            asset_pattern: "*sonama-silicon*"
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Download release assets (${{ matrix.channel }})
+        run: |
+          gh release download "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "${{ matrix.asset_pattern }}" \
+            --dir release-assets/
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract asset
+        run: |
+          unzip release-assets/*.zip -d build/
+
+      - name: Install butler
+        run: |
+          curl -L \
+            "https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default" \
+            -o butler.zip
+          unzip butler.zip
+          chmod +x butler
+
+      - name: Push to itch.io (${{ matrix.channel }})
+        run: |
+          ./butler push build/ \
+            phucholony/yandere:${{ matrix.channel }} \
+            --userversion ${{ steps.version.outputs.version }} \
+            --fix-permissions
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
