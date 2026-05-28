@@ -1,0 +1,16 @@
+{
+    "name": "Yandere.Player",
+    "rootNamespace": "Yandere.Player",
+    "references": [
+        "GUID:298dedbcbde38b64a8e7e512f40a108a"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
